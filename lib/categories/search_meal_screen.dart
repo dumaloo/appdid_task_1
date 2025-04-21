@@ -1,0 +1,119 @@
+import 'package:appdid_task/categories/search_meal_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
+
+class SearchMealScreen extends ConsumerWidget {
+  const SearchMealScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    TextEditingController searchController = TextEditingController();
+    final searchedMeal =
+        ref.watch(searchNotifierProvider(searchController.text));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Search Meal"),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              // Search bar
+              TextFormField(
+                controller: searchController,
+                onChanged: (value) {
+                  ref.read(searchNotifierProvider(searchController.text));
+                },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                ),
+              ),
+
+              searchedMeal.when(
+                data: (data) {
+                  return Column(
+                    children: [
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Center(child: Image.network(data[0]["strMealThumb"])),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Center(
+                              child: Text(
+                                  "Meal Category: ${data[0]["strCategory"]}")),
+                          ElevatedButton(
+                              onPressed: () {
+                                Share.share(
+                                    'Check out my recipe : ${data[0]["strYoutube"]}');
+                              },
+                              child: Text("Share Recipe YT video")),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Center(child: Text("Meal Name: ${data[0]["strMeal"]}")),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Center(child: Text("Meal Area: ${data[0]["strArea"]}")),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Text("Instructions"),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Center(child: Text(data[0]["strInstructions"] ?? "N/A")),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Center(child: Text("Recipe")),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      for (int i = 1; i <= 20; i++) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              data[0]["strIngredient$i"] ?? "N/A",
+                              textAlign: TextAlign.left,
+                            ),
+                            Text(
+                              data[0]["strMeasure$i"] ?? "N/A",
+                              textAlign: TextAlign.left,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  );
+                },
+                error: (error, stackTrace) {
+                  return Center(
+                    child: Text(error.toString()),
+                  );
+                },
+                loading: () {
+                  return Center(
+                    child: CircularProgressIndicator.adaptive(),
+                  );
+                },
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
