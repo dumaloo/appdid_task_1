@@ -8,9 +8,8 @@ class SearchMealScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    TextEditingController searchController = TextEditingController();
-    final searchedMeal =
-        ref.watch(searchNotifierProvider(searchController.text));
+    final query = ref.watch(searchQueryProvider);
+    final searchedMeal = ref.watch(searchNotifierProvider(query));
 
     return Scaffold(
       appBar: AppBar(
@@ -23,9 +22,8 @@ class SearchMealScreen extends ConsumerWidget {
             children: [
               // Search bar
               TextFormField(
-                controller: searchController,
                 onChanged: (value) {
-                  ref.read(searchNotifierProvider(searchController.text));
+                  ref.read(searchQueryProvider.notifier).state = value;
                 },
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
@@ -35,6 +33,9 @@ class SearchMealScreen extends ConsumerWidget {
 
               searchedMeal.when(
                 data: (data) {
+                  if (data.isEmpty) {
+                    return const Center(child: Text("No results found."));
+                  }
                   return Column(
                     children: [
                       const SizedBox(
