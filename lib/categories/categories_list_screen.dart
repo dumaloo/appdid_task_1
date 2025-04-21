@@ -1,9 +1,12 @@
+import 'package:appdid_task/auth/view/login_screen.dart';
 import 'package:appdid_task/categories/categories_provider.dart';
 import 'package:appdid_task/categories/search_meal_screen.dart';
 import 'package:appdid_task/meals/meals_by_category_screen.dart';
 import 'package:appdid_task/recipe/random_recipe_meal_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class CategoriesListScreen extends ConsumerWidget {
   const CategoriesListScreen({super.key});
@@ -15,33 +18,56 @@ class CategoriesListScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text("Categories"),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) {
-                    return RandomMealScreen();
-                  },
-                ));
-              },
-              child: Text("Random Meal"),
-            ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  return RandomMealScreen();
+                },
+              ));
+            },
+            child: Text("Random Meal"),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) {
-                    return SearchMealScreen();
-                  },
-                ));
-              },
-              label: Text("Search"),
-              icon: Icon(Icons.search),
-            ),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  return SearchMealScreen();
+                },
+              ));
+            },
+            icon: Icon(Icons.search),
           ),
+          IconButton(
+            onPressed: () async {
+              try {
+                await FirebaseAuth.instance.signOut();
+
+                await GoogleSignIn().signOut();
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Logged out successfully')),
+                  );
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
+
+                // Navigate back to login screen
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Logout failed: $e')),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.logout),
+          )
         ],
       ),
       body: categories.when(
